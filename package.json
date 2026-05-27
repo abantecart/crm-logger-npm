@@ -22,9 +22,22 @@
     "typescript": "^5.7.2"
   },
   "exports": {
-    "./contracts": "./contracts.js",
-    "./client": "./client.js",
-    "./ui-client": "./ui-client.js",
+    ".": {
+      "types": "./dist/contracts/index.d.ts",
+      "default": "./dist/contracts/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "default": "./dist/contracts/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    },
+    "./ui-client": {
+      "types": "./dist/ui-client/index.d.ts",
+      "default": "./dist/ui-client/index.js"
+    },
     "./mappers/grpc": {
       "types": "./dist/mappers/grpc.d.ts",
       "default": "./dist/mappers/grpc.js"
@@ -39,12 +52,6 @@
   },
   "files": [
     "dist",
-    "proto",
-    "contracts.js",
-    "contracts.d.ts",
-    "client.js",
-    "client.d.ts",
-    "ui-client.js",
-    "ui-client.d.ts"
+    "proto"
   ]
 }
