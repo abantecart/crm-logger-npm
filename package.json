@@ -1,0 +1,49 @@
+{
+  "name": "@abantecart/crm-logger",
+  "version": "1.0.0",
+  "private": false,
+  "main": "dist/contracts/index.js",
+  "types": "dist/contracts/index.d.ts",
+  "scripts": {
+    "codegen": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated --ts_proto_opt=esModuleInterop=true,env=node,outputServices=grpc-js,outputClientImpl=grpc-js,useOptionals=none,snakeToCamel=true,forceLong=string ./proto/audit/v1/audit.proto",
+    "build": "npm run codegen && tsc -p tsconfig.json",
+    "test": "tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.10.0",
+    "@grpc/grpc-js": "^1.14.1",
+    "ulid": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "ts-proto": "^2.7.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "exports": {
+    "./contracts": "./contracts.js",
+    "./client": "./client.js",
+    "./ui-client": "./ui-client.js",
+    "./mappers/grpc": {
+      "types": "./dist/mappers/grpc.d.ts",
+      "default": "./dist/mappers/grpc.js"
+    },
+    "./dist/generated/proto/audit/v1/audit": {
+      "types": "./dist/generated/proto/audit/v1/audit.d.ts",
+      "default": "./dist/generated/proto/audit/v1/audit.js"
+    },
+    "./generated/*": "./dist/generated/*",
+    "./mappers/*": "./dist/mappers/*",
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist",
+    "proto",
+    "contracts.js",
+    "contracts.d.ts",
+    "client.js",
+    "client.d.ts",
+    "ui-client.js",
+    "ui-client.d.ts"
+  ]
+}
