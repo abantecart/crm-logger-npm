@@ -6,14 +6,6 @@ Shared audit library (SDK) for:
 - backend gRPC client: `@abantecart/crm-logger/client`
 - frontend HTTP client: `@abantecart/crm-logger/ui-client`
 
-## Build
-
-```bash
-npm run build
-```
-
-This runs proto generation (`codegen`) and TypeScript build.
-
 ## Contracts
 
 ```ts
@@ -226,16 +218,11 @@ npm run build
 5. Update/verify tests
 
 - Mapper tests: `src/mappers/grpc.test.ts`
-- Service tests (transport + routing): `services/audit-log/test/*`
+- UI client tests: `src/ui-client/index.test.ts`
 
-Run:
+Run package tests:
 
 ```bash
-# package tests
-npm test
-
-# service tests
-cd ../../audit-log
 npm test
 ```
 
