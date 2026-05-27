@@ -1,6 +1,6 @@
 {
   "name": "@abantecart/crm-logger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "main": "dist/contracts/index.js",
   "types": "dist/contracts/index.d.ts",
