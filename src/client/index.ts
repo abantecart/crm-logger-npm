@@ -61,7 +61,7 @@ export class AuditLogger {
   private readonly requestTimeoutMs: number;
   private readonly maxRetries: number;
 
-  constructor(private readonly config: Required<AuditClientConfig>) {
+  constructor(private readonly config: AuditClientConfig & { target: string }) {
     this.requestTimeoutMs = config.requestTimeoutMs ?? config.timeoutMs ?? 2000;
     this.maxRetries = config.maxRetries ?? 1;
     this.client = new AuditServiceClient(config.target, credentials.createInsecure());
@@ -152,7 +152,7 @@ function parseEnvInt(name: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function resolveAuditClientConfig(input: AuditClientConfig = {}): Required<AuditClientConfig> {
+function resolveAuditClientConfig(input: AuditClientConfig = {}): AuditClientConfig & { target: string } {
   const target = input.target ?? process.env.AUDIT_GRPC_TARGET;
   if (!target) {
     throw new Error(

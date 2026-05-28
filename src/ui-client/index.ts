@@ -60,7 +60,7 @@ export class AuditUiClient {
   private readonly defaultHeaders: Record<string, string>;
   private readonly fetchImpl: typeof fetch;
 
-  constructor(config: Required<AuditUiClientConfig>) {
+  constructor(config: AuditUiClientConfig & { baseUrl: string }) {
     this.baseUrl = config.baseUrl;
     this.apiBasePath = normalizeApiBasePath(config.apiBasePath);
     this.timeoutMs = config.timeoutMs ?? 3000;
@@ -164,7 +164,9 @@ function envString(...names: string[]): string | undefined {
   return undefined;
 }
 
-function resolveAuditUiClientConfig(input: AuditUiClientConfig = {}): Required<AuditUiClientConfig> {
+function resolveAuditUiClientConfig(
+  input: AuditUiClientConfig = {},
+): AuditUiClientConfig & { baseUrl: string } {
   const baseUrl = input.baseUrl ?? envString("VITE_AUDIT_LOG_BASE_URL", "AUDIT_HTTP_BASE_URL");
   if (!baseUrl) {
     throw new Error(
@@ -174,10 +176,13 @@ function resolveAuditUiClientConfig(input: AuditUiClientConfig = {}): Required<A
 
   return {
     baseUrl,
-    apiBasePath:
-      input.apiBasePath ??
-      envString("VITE_AUDIT_API_BASE_PATH", "AUDIT_HTTP_API_BASE_PATH") ??
-      AUDIT_API_BASE_PATH.V1,
+    apiBasePath: (() => {
+      const resolved =
+        input.apiBasePath ??
+        envString("VITE_AUDIT_API_BASE_PATH", "AUDIT_HTTP_API_BASE_PATH") ??
+        AUDIT_API_BASE_PATH.V1;
+      return resolved as AuditUiClientConfig["apiBasePath"];
+    })(),
     timeoutMs:
       input.timeoutMs ??
       parseEnvInt("VITE_AUDIT_HTTP_TIMEOUT_MS") ??
