@@ -23,7 +23,7 @@ export type AuditApiBasePath = typeof AUDIT_API_BASE_PATH[keyof typeof AUDIT_API
 export type AuditApiBasePathInput = AuditApiBasePath | `v${number}` | `${AuditApiBasePath}/`;
 
 export type AuditUiClientConfig = {
-  baseUrl: string;
+  baseUrl?: string;
   apiBasePath?: AuditApiBasePathInput;
   timeoutMs?: number;
   maxRetries?: number;

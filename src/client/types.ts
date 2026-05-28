@@ -15,7 +15,7 @@ export type {
 };
 
 export type AuditClientConfig = {
-  target: string;
+  target?: string;
   timeoutMs?: number;
   /** @deprecated Use timeoutMs */
   requestTimeoutMs?: number;

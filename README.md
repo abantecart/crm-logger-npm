@@ -1,6 +1,6 @@
 # @abantecart/crm-logger
 
-Shared audit library (SDK) for:
+Audit logger SDK package for:
 
 - domain contracts: `@abantecart/crm-logger/contracts`
 - backend gRPC client: `@abantecart/crm-logger/client`
@@ -28,12 +28,7 @@ import {
   createAuditGrpcClient,
 } from "@abantecart/crm-logger/client";
 
-const audit = createAuditGrpcClient({
-  target: "localhost:50051",
-  // timeoutMs: 2000, // default value
-  // maxRetries: 1, // default value
-  // requestTimeoutMs: 2000, // legacy alias for timeoutMs
-});
+const audit = createAuditGrpcClient();
 
 audit.logAccess(
   {
@@ -87,6 +82,23 @@ audit.logActivity(
 
 ```
 
+Env-based setup (no args):
+
+```env
+AUDIT_GRPC_TARGET=localhost:50051
+AUDIT_GRPC_TIMEOUT_MS=2000
+AUDIT_GRPC_MAX_RETRIES=1
+```
+
+`createAuditGrpcClient(config?)` options:
+
+| Field | Type | Default / Env | Notes |
+|---|---|---|---|
+| `target` | `string` | `AUDIT_GRPC_TARGET` | Required via config or env |
+| `timeoutMs` | `number` | `AUDIT_GRPC_TIMEOUT_MS` or `2000` | Request timeout in ms |
+| `requestTimeoutMs` | `number` | none | Legacy alias for `timeoutMs` (explicit only) |
+| `maxRetries` | `number` | `AUDIT_GRPC_MAX_RETRIES` or `1` | Retry count |
+
 ### UI (Frontend HTTP SDK)
 
 ```ts
@@ -103,15 +115,9 @@ import {
 } from "@abantecart/crm-logger/ui-client";
 
 const audit = createAuditHttpClient({
-  baseUrl: import.meta.env.VITE_AUDIT_LOG_BASE_URL,
-  // apiBasePath: AUDIT_API_BASE_PATH.V1, // default value
-  // apiBasePath: AUDIT_API_BASE_PATH.V2, // optional runtime override
-  // timeoutMs: 3000, // default value
-  // maxRetries: 1, // default value
-  // defaultHeaders: {
-  //   "x-request-source": "ui",
-  // },
-  // fetchImpl: fetch,
+  defaultHeaders: {
+    "x-request-source": "ui",
+  },
 });
 
 audit.logAccess(
@@ -166,6 +172,26 @@ audit.logActivity(
 ```
 
 `apiBasePath` is a runtime API-version switch for UI HTTP routes (for example `/v1` or `/v2`).
+
+Env-based setup for UI client:
+
+```env
+VITE_AUDIT_LOG_BASE_URL=http://localhost:3011
+VITE_AUDIT_API_BASE_PATH=/v1
+VITE_AUDIT_HTTP_TIMEOUT_MS=3000
+VITE_AUDIT_HTTP_MAX_RETRIES=1
+```
+
+`createAuditHttpClient(config?)` options:
+
+| Field | Type | Default / Env | Notes |
+|---|---|---|---|
+| `baseUrl` | `string` | `VITE_AUDIT_LOG_BASE_URL` or `AUDIT_HTTP_BASE_URL` | Required via config or env |
+| `apiBasePath` | `"/v1" \| "/v2" \| \`v${number}\`` | `VITE_AUDIT_API_BASE_PATH` or `AUDIT_HTTP_API_BASE_PATH` or `/v1` | API version prefix |
+| `timeoutMs` | `number` | `VITE_AUDIT_HTTP_TIMEOUT_MS` or `AUDIT_HTTP_TIMEOUT_MS` or `3000` | Request timeout in ms |
+| `maxRetries` | `number` | `VITE_AUDIT_HTTP_MAX_RETRIES` or `AUDIT_HTTP_MAX_RETRIES` or `1` | Retry count |
+| `defaultHeaders` | `Record<string, string>` | `{}` | Headers merged into every request |
+| `fetchImpl` | `typeof fetch` | global `fetch` | Override fetch implementation |
 
 ### Which one to use
 

@@ -61,7 +61,7 @@ export class AuditLogger {
   private readonly requestTimeoutMs: number;
   private readonly maxRetries: number;
 
-  constructor(private readonly config: AuditClientConfig) {
+  constructor(private readonly config: Required<AuditClientConfig>) {
     this.requestTimeoutMs = config.requestTimeoutMs ?? config.timeoutMs ?? 2000;
     this.maxRetries = config.maxRetries ?? 1;
     this.client = new AuditServiceClient(config.target, credentials.createInsecure());
@@ -134,11 +134,36 @@ export class AuditLogger {
   }
 }
 
-export function createAuditGrpcClient(config: AuditClientConfig): AuditLogger {
-  return new AuditLogger(config);
+export function createAuditGrpcClient(config?: AuditClientConfig): AuditLogger {
+  return new AuditLogger(resolveAuditClientConfig(config));
 }
 
 /** @deprecated Use createAuditGrpcClient */
-export function init(config: AuditClientConfig): AuditLogger {
+export function init(config?: AuditClientConfig): AuditLogger {
   return createAuditGrpcClient(config);
+}
+
+function parseEnvInt(name: string): number | undefined {
+  const value = process.env[name];
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function resolveAuditClientConfig(input: AuditClientConfig = {}): Required<AuditClientConfig> {
+  const target = input.target ?? process.env.AUDIT_GRPC_TARGET;
+  if (!target) {
+    throw new Error(
+      "Missing audit gRPC target. Provide config.target or AUDIT_GRPC_TARGET env variable.",
+    );
+  }
+
+  return {
+    target,
+    timeoutMs: input.timeoutMs ?? parseEnvInt("AUDIT_GRPC_TIMEOUT_MS"),
+    requestTimeoutMs: input.requestTimeoutMs,
+    maxRetries: input.maxRetries ?? parseEnvInt("AUDIT_GRPC_MAX_RETRIES"),
+  };
 }

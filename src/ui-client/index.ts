@@ -60,7 +60,7 @@ export class AuditUiClient {
   private readonly defaultHeaders: Record<string, string>;
   private readonly fetchImpl: typeof fetch;
 
-  constructor(config: AuditUiClientConfig) {
+  constructor(config: Required<AuditUiClientConfig>) {
     this.baseUrl = config.baseUrl;
     this.apiBasePath = normalizeApiBasePath(config.apiBasePath);
     this.timeoutMs = config.timeoutMs ?? 3000;
@@ -136,11 +136,57 @@ export class AuditUiClient {
   }
 }
 
-export function createAuditHttpClient(config: AuditUiClientConfig): AuditUiClient {
-  return new AuditUiClient(config);
+export function createAuditHttpClient(config?: AuditUiClientConfig): AuditUiClient {
+  return new AuditUiClient(resolveAuditUiClientConfig(config));
 }
 
 /** @deprecated Use createAuditHttpClient */
-export function initUiClient(config: AuditUiClientConfig): AuditUiClient {
+export function initUiClient(config?: AuditUiClientConfig): AuditUiClient {
   return createAuditHttpClient(config);
+}
+
+function parseEnvInt(name: string): number | undefined {
+  const value = process.env[name];
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function envString(...names: string[]): string | undefined {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value && value.trim()) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+function resolveAuditUiClientConfig(input: AuditUiClientConfig = {}): Required<AuditUiClientConfig> {
+  const baseUrl = input.baseUrl ?? envString("VITE_AUDIT_LOG_BASE_URL", "AUDIT_HTTP_BASE_URL");
+  if (!baseUrl) {
+    throw new Error(
+      "Missing audit UI base URL. Provide config.baseUrl or VITE_AUDIT_LOG_BASE_URL (or AUDIT_HTTP_BASE_URL).",
+    );
+  }
+
+  return {
+    baseUrl,
+    apiBasePath:
+      input.apiBasePath ??
+      envString("VITE_AUDIT_API_BASE_PATH", "AUDIT_HTTP_API_BASE_PATH") ??
+      AUDIT_API_BASE_PATH.V1,
+    timeoutMs:
+      input.timeoutMs ??
+      parseEnvInt("VITE_AUDIT_HTTP_TIMEOUT_MS") ??
+      parseEnvInt("AUDIT_HTTP_TIMEOUT_MS"),
+    maxRetries:
+      input.maxRetries ??
+      parseEnvInt("VITE_AUDIT_HTTP_MAX_RETRIES") ??
+      parseEnvInt("AUDIT_HTTP_MAX_RETRIES"),
+    defaultHeaders: input.defaultHeaders ?? {},
+    fetchImpl: input.fetchImpl ?? fetch,
+  };
 }

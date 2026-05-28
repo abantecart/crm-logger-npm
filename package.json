@@ -10,7 +10,6 @@
     "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
-    "@abantecart/crm-logger": "github:abantecart/crm-logger-npm#v1.0.4",
     "@bufbuild/protobuf": "^2.10.0",
     "@grpc/grpc-js": "^1.14.1",
     "ulid": "^2.4.0"
