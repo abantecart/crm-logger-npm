@@ -114,11 +114,7 @@ import {
   createAuditHttpClient,
 } from "@abantecart/crm-logger/ui-client";
 
-const audit = createAuditHttpClient({
-  defaultHeaders: {
-    "x-request-source": "ui",
-  },
-});
+const audit = createAuditHttpClient();
 
 audit.logAccess(
   {
