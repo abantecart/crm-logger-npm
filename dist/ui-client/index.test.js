@@ -68,6 +68,19 @@ const accessInput = { eventType: "api.request", outcome: "allowed" };
     });
     strict_1.default.equal(calls[0].url, "http://localhost:3011/v1/audit/activity");
 });
+(0, node_test_1.default)("ui-client can read access/change/activity lists", async () => {
+    const { calls, fetchImpl } = makeFetchRecorder();
+    const client = (0, index_1.createAuditHttpClient)({
+        baseUrl: "http://localhost:3011",
+        fetchImpl,
+    });
+    await client.getAccess(25);
+    await client.getChange(50);
+    await client.getActivity(75);
+    strict_1.default.equal(calls[0].url, "http://localhost:3011/v1/audit/access?limit=25");
+    strict_1.default.equal(calls[1].url, "http://localhost:3011/v1/audit/change?limit=50");
+    strict_1.default.equal(calls[2].url, "http://localhost:3011/v1/audit/activity?limit=75");
+});
 (0, node_test_1.default)("ui-client keeps existing options working (headers + retries)", async () => {
     let attempts = 0;
     const fetchImpl = (async (_input, init) => {

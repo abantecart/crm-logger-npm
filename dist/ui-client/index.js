@@ -100,6 +100,15 @@ class AuditUiClient {
     getHealth() {
         return this.request(`${this.apiBasePath}/audit/health`, { method: "GET" });
     }
+    getAccess(limit = 100) {
+        return this.request(`${this.apiBasePath}/audit/access?limit=${encodeURIComponent(String(limit))}`, { method: "GET" });
+    }
+    getChange(limit = 100) {
+        return this.request(`${this.apiBasePath}/audit/change?limit=${encodeURIComponent(String(limit))}`, { method: "GET" });
+    }
+    getActivity(limit = 100) {
+        return this.request(`${this.apiBasePath}/audit/activity?limit=${encodeURIComponent(String(limit))}`, { method: "GET" });
+    }
 }
 exports.AuditUiClient = AuditUiClient;
 function createAuditHttpClient(config) {
