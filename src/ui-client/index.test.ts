@@ -77,6 +77,22 @@ test("ui-client falls back to /v1 for empty apiBasePath", async () => {
   assert.equal(calls[0].url, "http://localhost:3011/v1/audit/activity");
 });
 
+test("ui-client can read access/change/activity lists", async () => {
+  const { calls, fetchImpl } = makeFetchRecorder();
+  const client = createAuditHttpClient({
+    baseUrl: "http://localhost:3011",
+    fetchImpl,
+  });
+
+  await client.getAccess(25);
+  await client.getChange(50);
+  await client.getActivity(75);
+
+  assert.equal(calls[0].url, "http://localhost:3011/v1/audit/access?limit=25");
+  assert.equal(calls[1].url, "http://localhost:3011/v1/audit/change?limit=50");
+  assert.equal(calls[2].url, "http://localhost:3011/v1/audit/activity?limit=75");
+});
+
 test("ui-client keeps existing options working (headers + retries)", async () => {
   let attempts = 0;
   const fetchImpl = (async (_input: unknown, init?: RequestInit): Promise<Response> => {

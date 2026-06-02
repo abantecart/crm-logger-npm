@@ -1,10 +1,14 @@
 import type {
+  AccessLogItem,
   AccessLogInput,
+  ActivityLogItem,
   ActivityLogInput,
   AuditContext,
   AuditHealth,
   AuditWriteResponse,
+  AuditListResponse,
   AuditUiClientConfig,
+  ChangeLogItem,
   ChangeLogInput,
 } from "./types";
 import {
@@ -20,11 +24,15 @@ import { AUDIT_API_BASE_PATH } from "./types";
 
 export type {
   AccessLogInput,
+  AccessLogItem,
   ActivityLogInput,
+  ActivityLogItem,
   AuditContext,
   AuditHealth,
+  AuditListResponse,
   AuditWriteResponse,
   AuditUiClientConfig,
+  ChangeLogItem,
   ChangeLogInput,
 };
 export {
@@ -133,6 +141,27 @@ export class AuditUiClient {
 
   getHealth(): Promise<AuditHealth> {
     return this.request<AuditHealth>(`${this.apiBasePath}/audit/health`, { method: "GET" });
+  }
+
+  getAccess(limit = 100): Promise<AuditListResponse<AccessLogItem>> {
+    return this.request<AuditListResponse<AccessLogItem>>(
+      `${this.apiBasePath}/audit/access?limit=${encodeURIComponent(String(limit))}`,
+      { method: "GET" },
+    );
+  }
+
+  getChange(limit = 100): Promise<AuditListResponse<ChangeLogItem>> {
+    return this.request<AuditListResponse<ChangeLogItem>>(
+      `${this.apiBasePath}/audit/change?limit=${encodeURIComponent(String(limit))}`,
+      { method: "GET" },
+    );
+  }
+
+  getActivity(limit = 100): Promise<AuditListResponse<ActivityLogItem>> {
+    return this.request<AuditListResponse<ActivityLogItem>>(
+      `${this.apiBasePath}/audit/activity?limit=${encodeURIComponent(String(limit))}`,
+      { method: "GET" },
+    );
   }
 }
 

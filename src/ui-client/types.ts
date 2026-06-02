@@ -1,17 +1,31 @@
 import type {
+  AccessLogItem,
   AccessLogInput,
+  ActivityLogItem,
   ActivityLogInput,
   AuditContext,
   AuditHealth,
+  ChangeLogItem,
   ChangeLogInput,
 } from "../contracts/types";
+import type {
+  GetAccessResponseV1,
+  GetActivityResponseV1,
+  GetChangeResponseV1,
+} from "../contracts/http-v1";
 
 export type {
   AccessLogInput,
+  AccessLogItem,
   ActivityLogInput,
+  ActivityLogItem,
   AuditContext,
   AuditHealth,
   ChangeLogInput,
+  ChangeLogItem,
+  GetAccessResponseV1,
+  GetActivityResponseV1,
+  GetChangeResponseV1,
 };
 
 export const AUDIT_API_BASE_PATH = {
@@ -34,4 +48,8 @@ export type AuditUiClientConfig = {
 export type AuditWriteResponse = {
   ok: boolean;
   message: string;
+};
+
+export type AuditListResponse<TItem extends Record<string, unknown> = Record<string, unknown>> = {
+  items: TItem[];
 };
