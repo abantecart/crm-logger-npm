@@ -15,6 +15,7 @@ Object.defineProperty(exports, "OUTCOME", { enumerable: true, get: function () {
 const grpc_js_1 = require("@grpc/grpc-js");
 const audit_1 = require("../generated/proto/audit/v1/audit");
 const grpc_1 = require("../mappers/grpc");
+const token_1 = require("./token");
 function wait(ms) {
     return new Promise((resolveWait) => {
         setTimeout(resolveWait, ms);
@@ -25,11 +26,28 @@ class AuditLogger {
     client;
     requestTimeoutMs;
     maxRetries;
+    getToken;
     constructor(config) {
         this.config = config;
         this.requestTimeoutMs = config.requestTimeoutMs ?? config.timeoutMs ?? 2000;
         this.maxRetries = config.maxRetries ?? 1;
+        this.getToken = resolveTokenProvider(config);
         this.client = new audit_1.AuditServiceClient(config.target, grpc_js_1.credentials.createInsecure());
+    }
+    /**
+     * gRPC metadata carrying `authorization: Bearer <token>`. Returns empty
+     * metadata when no token provider is configured (audit-log without auth),
+     * so behaviour matches the previous no-auth path.
+     */
+    async authMetadata() {
+        const metadata = new grpc_js_1.Metadata();
+        if (this.getToken) {
+            const token = await this.getToken();
+            if (token) {
+                metadata.set("authorization", `Bearer ${token}`);
+            }
+        }
+        return metadata;
     }
     async callWithRetry(fn, methodName) {
         let attempt = 0;
@@ -62,18 +80,21 @@ class AuditLogger {
         return null;
     }
     async logAccess(ctx, input) {
+        const metadata = await this.authMetadata();
         await this.callWithRetry((cb) => {
-            this.client.logAccess((0, grpc_1.toGrpcLogAccessRequest)(ctx, input), cb);
+            this.client.logAccess((0, grpc_1.toGrpcLogAccessRequest)(ctx, input), metadata, cb);
         }, "logAccess");
     }
     async logChange(ctx, input) {
+        const metadata = await this.authMetadata();
         await this.callWithRetry((cb) => {
-            this.client.logChange((0, grpc_1.toGrpcLogChangeRequest)(ctx, input), cb);
+            this.client.logChange((0, grpc_1.toGrpcLogChangeRequest)(ctx, input), metadata, cb);
         }, "logChange");
     }
     async logActivity(ctx, input) {
+        const metadata = await this.authMetadata();
         await this.callWithRetry((cb) => {
-            this.client.logActivity((0, grpc_1.toGrpcLogActivityRequest)(ctx, input), cb);
+            this.client.logActivity((0, grpc_1.toGrpcLogActivityRequest)(ctx, input), metadata, cb);
         }, "logActivity");
     }
     async getAuditHealth() {
@@ -102,6 +123,54 @@ function parseEnvInt(name) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : undefined;
 }
+function envString(...names) {
+    for (const name of names) {
+        const value = process.env[name];
+        if (value && value.trim()) {
+            return value.trim();
+        }
+    }
+    return undefined;
+}
+/**
+ * Bearer token provider: an explicit `getToken` takes precedence, otherwise the
+ * package configures client_credentials from `auth`/env. With no credentials
+ * there is no provider (the client sends write calls without a token, as before).
+ */
+function resolveTokenProvider(config) {
+    if (config.getToken) {
+        const getToken = config.getToken;
+        return async () => getToken();
+    }
+    const auth = resolveAuthConfig(config.auth);
+    if (!auth) {
+        return undefined;
+    }
+    return (0, token_1.createServiceTokenProvider)(auth);
+}
+function resolveAuthConfig(input = {}) {
+    const clientId = input.clientId ?? envString("AUDIT_GRPC_CLIENT_ID", "KEYCLOAK_CLIENT_ID");
+    const clientSecret = input.clientSecret ?? envString("AUDIT_GRPC_CLIENT_SECRET", "KEYCLOAK_CLIENT_SECRET");
+    // Without a service account there is no token to mint — behave as before (no auth).
+    if (!clientId || !clientSecret) {
+        return undefined;
+    }
+    const issuerUrl = (input.issuerUrl ?? envString("KEYCLOAK_ISSUER_URL"))?.replace(/\/$/, "");
+    const tokenEndpoint = input.tokenEndpoint ??
+        envString("AUDIT_GRPC_TOKEN_ENDPOINT", "KEYCLOAK_TOKEN_ENDPOINT") ??
+        (issuerUrl ? `${issuerUrl}/protocol/openid-connect/token` : undefined);
+    if (!tokenEndpoint) {
+        throw new Error("Missing audit token endpoint. Provide auth.tokenEndpoint, auth.issuerUrl, or KEYCLOAK_ISSUER_URL/KEYCLOAK_TOKEN_ENDPOINT.");
+    }
+    return {
+        tokenEndpoint,
+        clientId,
+        clientSecret,
+        scope: input.scope ?? envString("AUDIT_GRPC_SCOPE"),
+        audience: input.audience ?? envString("AUDIT_GRPC_AUDIENCE", "KEYCLOAK_AUDIENCE"),
+        allowSelfSignedTls: input.allowSelfSignedTls ?? process.env.KEYCLOAK_ALLOW_SELF_SIGNED_TLS === "true",
+    };
+}
 function resolveAuditClientConfig(input = {}) {
     const target = input.target ?? process.env.AUDIT_GRPC_TARGET;
     if (!target) {
@@ -112,6 +181,8 @@ function resolveAuditClientConfig(input = {}) {
         timeoutMs: input.timeoutMs ?? parseEnvInt("AUDIT_GRPC_TIMEOUT_MS"),
         requestTimeoutMs: input.requestTimeoutMs,
         maxRetries: input.maxRetries ?? parseEnvInt("AUDIT_GRPC_MAX_RETRIES"),
+        auth: input.auth,
+        getToken: input.getToken,
     };
 }
 //# sourceMappingURL=index.js.map
