@@ -1,6 +1,6 @@
 {
   "name": "@abantecart/crm-logger",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "private": false,
   "main": "dist/contracts/index.js",
   "types": "dist/contracts/index.d.ts",
@@ -14,8 +14,18 @@
     "@grpc/grpc-js": "^1.14.1",
     "ulid": "^2.4.0"
   },
+  "peerDependencies": {
+    "pg": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.15.5",
+    "pg": "^8.16.3",
     "ts-proto": "^2.7.7",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
@@ -40,6 +50,14 @@
     "./mappers/grpc": {
       "types": "./dist/mappers/grpc.d.ts",
       "default": "./dist/mappers/grpc.js"
+    },
+    "./outbox": {
+      "types": "./dist/outbox/index.d.ts",
+      "default": "./dist/outbox/index.js"
+    },
+    "./sql": {
+      "types": "./dist/sql/index.d.ts",
+      "default": "./dist/sql/index.js"
     },
     "./dist/generated/proto/audit/v1/audit": {
       "types": "./dist/generated/proto/audit/v1/audit.d.ts",
