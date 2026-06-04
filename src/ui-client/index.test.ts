@@ -25,24 +25,24 @@ const accessInput = { eventType: "api.request" as const, outcome: "allowed" as c
 test("ui-client uses /v1 by default when apiBasePath is not set", async () => {
   const { calls, fetchImpl } = makeFetchRecorder();
   const client = createAuditHttpClient({
-    baseUrl: "http://localhost:3011",
+    baseUrl: "https://audit.example.test",
     fetchImpl,
   });
 
   await client.logAccess(ctx, accessInput);
-  assert.equal(calls[0].url, "http://localhost:3011/v1/audit/access");
+  assert.equal(calls[0].url, "https://audit.example.test/v1/audit/access");
 });
 
 test("ui-client uses explicit /v2 apiBasePath", async () => {
   const { calls, fetchImpl } = makeFetchRecorder();
   const client = createAuditHttpClient({
-    baseUrl: "http://localhost:3011",
+    baseUrl: "https://audit.example.test",
     apiBasePath: "/v2",
     fetchImpl,
   });
 
   await client.logAccess(ctx, accessInput);
-  assert.equal(calls[0].url, "http://localhost:3011/v2/audit/access");
+  assert.equal(calls[0].url, "https://audit.example.test/v2/audit/access");
 });
 
 test("ui-client normalizes apiBasePath variants", async () => {
@@ -50,20 +50,20 @@ test("ui-client normalizes apiBasePath variants", async () => {
   for (const apiBasePath of cases) {
     const { calls, fetchImpl } = makeFetchRecorder();
     const client = createAuditHttpClient({
-      baseUrl: "http://localhost:3011/",
+      baseUrl: "https://audit.example.test/",
       apiBasePath,
       fetchImpl,
     });
 
     await client.getHealth();
-    assert.equal(calls[0].url, "http://localhost:3011/v2/audit/health");
+    assert.equal(calls[0].url, "https://audit.example.test/v2/audit/health");
   }
 });
 
 test("ui-client falls back to /v1 for empty apiBasePath", async () => {
   const { calls, fetchImpl } = makeFetchRecorder();
   const client = createAuditHttpClient({
-    baseUrl: "http://localhost:3011",
+    baseUrl: "https://audit.example.test",
     apiBasePath: "   " as unknown as AuditApiBasePathInput,
     fetchImpl,
   });
@@ -74,13 +74,13 @@ test("ui-client falls back to /v1 for empty apiBasePath", async () => {
     operation: ACTIVITY_OPERATION.OPEN,
     activity: "Opened order",
   });
-  assert.equal(calls[0].url, "http://localhost:3011/v1/audit/activity");
+  assert.equal(calls[0].url, "https://audit.example.test/v1/audit/activity");
 });
 
 test("ui-client can read access/change/activity lists", async () => {
   const { calls, fetchImpl } = makeFetchRecorder();
   const client = createAuditHttpClient({
-    baseUrl: "http://localhost:3011",
+    baseUrl: "https://audit.example.test",
     fetchImpl,
   });
 
@@ -88,9 +88,44 @@ test("ui-client can read access/change/activity lists", async () => {
   await client.getChange(50);
   await client.getActivity(75);
 
-  assert.equal(calls[0].url, "http://localhost:3011/v1/audit/access?limit=25");
-  assert.equal(calls[1].url, "http://localhost:3011/v1/audit/change?limit=50");
-  assert.equal(calls[2].url, "http://localhost:3011/v1/audit/activity?limit=75");
+  assert.equal(calls[0].url, "https://audit.example.test/v1/audit/access?limit=25");
+  assert.equal(calls[1].url, "https://audit.example.test/v1/audit/change?limit=50");
+  assert.equal(calls[2].url, "https://audit.example.test/v1/audit/activity?limit=75");
+});
+
+test("ui-client supports paginated read endpoints", async () => {
+  const { calls, fetchImpl } = makeFetchRecorder();
+  const client = createAuditHttpClient({
+    baseUrl: "https://audit.example.test",
+    fetchImpl,
+  });
+
+  await client.readAccess({ limit: 25, cursor: "cur-1", sortBy: "timestamp", sortDir: "asc" });
+  await client.readChange({ sortBy: "timestamp", sortDir: "desc" });
+  await client.readActivity({ limit: 5 });
+
+  assert.equal(
+    calls[0].url,
+    "https://audit.example.test/v1/audit/access?limit=25&cursor=cur-1&sortBy=timestamp&sortDir=asc",
+  );
+  assert.equal(calls[1].url, "https://audit.example.test/v1/audit/change?sortBy=timestamp&sortDir=desc");
+  assert.equal(calls[2].url, "https://audit.example.test/v1/audit/activity?limit=5");
+});
+
+test("ui-client supports count endpoints", async () => {
+  const { calls, fetchImpl } = makeFetchRecorder();
+  const client = createAuditHttpClient({
+    baseUrl: "https://audit.example.test",
+    fetchImpl,
+  });
+
+  await client.countAccess();
+  await client.countChange();
+  await client.countActivity();
+
+  assert.equal(calls[0].url, "https://audit.example.test/v1/audit/access/count");
+  assert.equal(calls[1].url, "https://audit.example.test/v1/audit/change/count");
+  assert.equal(calls[2].url, "https://audit.example.test/v1/audit/activity/count");
 });
 
 test("ui-client keeps existing options working (headers + retries)", async () => {
@@ -110,7 +145,7 @@ test("ui-client keeps existing options working (headers + retries)", async () =>
   }) as typeof fetch;
 
   const client = createAuditHttpClient({
-    baseUrl: "http://localhost:3011",
+    baseUrl: "https://audit.example.test",
     apiBasePath: "/v1",
     maxRetries: 1,
     defaultHeaders: { "x-request-source": "ui" },

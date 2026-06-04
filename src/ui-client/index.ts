@@ -3,8 +3,10 @@ import type {
   AccessLogInput,
   ActivityLogItem,
   ActivityLogInput,
+  AuditCountResponse,
   AuditContext,
   AuditHealth,
+  AuditReadParams,
   AuditWriteResponse,
   AuditListResponse,
   AuditUiClientConfig,
@@ -28,8 +30,10 @@ export type {
   ActivityLogInput,
   ActivityLogItem,
   AuditContext,
+  AuditCountResponse,
   AuditHealth,
   AuditListResponse,
+  AuditReadParams,
   AuditWriteResponse,
   AuditUiClientConfig,
   ChangeLogItem,
@@ -58,6 +62,24 @@ function normalizeApiBasePath(input: AuditUiClientConfig["apiBasePath"]): string
   }
   const noSlashes = raw.replace(/^\/+|\/+$/g, "");
   return `/${noSlashes}`;
+}
+
+function buildQuery(params: AuditReadParams = {}): string {
+  const search = new URLSearchParams();
+  if (params.limit !== undefined) {
+    search.set("limit", String(params.limit));
+  }
+  if (params.cursor) {
+    search.set("cursor", params.cursor);
+  }
+  if (params.sortBy) {
+    search.set("sortBy", params.sortBy);
+  }
+  if (params.sortDir) {
+    search.set("sortDir", params.sortDir);
+  }
+  const query = search.toString();
+  return query ? `?${query}` : "";
 }
 
 export class AuditUiClient {
@@ -162,6 +184,39 @@ export class AuditUiClient {
       `${this.apiBasePath}/audit/activity?limit=${encodeURIComponent(String(limit))}`,
       { method: "GET" },
     );
+  }
+
+  readAccess(params: AuditReadParams = {}): Promise<AuditListResponse<AccessLogItem>> {
+    return this.request<AuditListResponse<AccessLogItem>>(
+      `${this.apiBasePath}/audit/access${buildQuery(params)}`,
+      { method: "GET" },
+    );
+  }
+
+  readChange(params: AuditReadParams = {}): Promise<AuditListResponse<ChangeLogItem>> {
+    return this.request<AuditListResponse<ChangeLogItem>>(
+      `${this.apiBasePath}/audit/change${buildQuery(params)}`,
+      { method: "GET" },
+    );
+  }
+
+  readActivity(params: AuditReadParams = {}): Promise<AuditListResponse<ActivityLogItem>> {
+    return this.request<AuditListResponse<ActivityLogItem>>(
+      `${this.apiBasePath}/audit/activity${buildQuery(params)}`,
+      { method: "GET" },
+    );
+  }
+
+  countAccess(): Promise<AuditCountResponse> {
+    return this.request<AuditCountResponse>(`${this.apiBasePath}/audit/access/count`, { method: "GET" });
+  }
+
+  countChange(): Promise<AuditCountResponse> {
+    return this.request<AuditCountResponse>(`${this.apiBasePath}/audit/change/count`, { method: "GET" });
+  }
+
+  countActivity(): Promise<AuditCountResponse> {
+    return this.request<AuditCountResponse>(`${this.apiBasePath}/audit/activity/count`, { method: "GET" });
   }
 }
 

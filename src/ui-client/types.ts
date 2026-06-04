@@ -52,4 +52,20 @@ export type AuditWriteResponse = {
 
 export type AuditListResponse<TItem extends Record<string, unknown> = Record<string, unknown>> = {
   items: TItem[];
+  nextCursor?: string | null;
+  hasMore?: boolean;
+  pageSize?: number;
+};
+
+export type AuditReadSortDir = "asc" | "desc";
+
+export type AuditReadParams = {
+  limit?: number;
+  cursor?: string | null;
+  sortBy?: string;
+  sortDir?: AuditReadSortDir;
+};
+
+export type AuditCountResponse = {
+  total: number;
 };
