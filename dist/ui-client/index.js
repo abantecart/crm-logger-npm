@@ -25,6 +25,23 @@ function normalizeApiBasePath(input) {
     const noSlashes = raw.replace(/^\/+|\/+$/g, "");
     return `/${noSlashes}`;
 }
+function buildQuery(params = {}) {
+    const search = new URLSearchParams();
+    if (params.limit !== undefined) {
+        search.set("limit", String(params.limit));
+    }
+    if (params.cursor) {
+        search.set("cursor", params.cursor);
+    }
+    if (params.sortBy) {
+        search.set("sortBy", params.sortBy);
+    }
+    if (params.sortDir) {
+        search.set("sortDir", params.sortDir);
+    }
+    const query = search.toString();
+    return query ? `?${query}` : "";
+}
 class AuditUiClient {
     baseUrl;
     apiBasePath;
@@ -108,6 +125,24 @@ class AuditUiClient {
     }
     getActivity(limit = 100) {
         return this.request(`${this.apiBasePath}/audit/activity?limit=${encodeURIComponent(String(limit))}`, { method: "GET" });
+    }
+    readAccess(params = {}) {
+        return this.request(`${this.apiBasePath}/audit/access${buildQuery(params)}`, { method: "GET" });
+    }
+    readChange(params = {}) {
+        return this.request(`${this.apiBasePath}/audit/change${buildQuery(params)}`, { method: "GET" });
+    }
+    readActivity(params = {}) {
+        return this.request(`${this.apiBasePath}/audit/activity${buildQuery(params)}`, { method: "GET" });
+    }
+    countAccess() {
+        return this.request(`${this.apiBasePath}/audit/access/count`, { method: "GET" });
+    }
+    countChange() {
+        return this.request(`${this.apiBasePath}/audit/change/count`, { method: "GET" });
+    }
+    countActivity() {
+        return this.request(`${this.apiBasePath}/audit/activity/count`, { method: "GET" });
     }
 }
 exports.AuditUiClient = AuditUiClient;
