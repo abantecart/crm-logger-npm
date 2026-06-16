@@ -29,6 +29,8 @@ function normalizeDurationMs(value: number | undefined): number {
 }
 
 function baseCommon(ctx: AuditContext, tsMs: number, id: string): Record<string, unknown> {
+  const requestId = ctx.requestId?.trim();
+
   return {
     id,
     timestamp: tsMs,
@@ -36,7 +38,7 @@ function baseCommon(ctx: AuditContext, tsMs: number, id: string): Record<string,
     actor_id: ctx.actorId,
     actor_type: ctx.actorType,
     tenant_id: ctx.tenantId,
-    request_id: ctx.requestId ?? "",
+    ...(requestId ? { request_id: requestId } : {}),
     source: ctx.source ?? "unknown",
   };
 }

@@ -113,7 +113,7 @@ export type ChangeLogInput = UserChangeLogInput | SystemChangeLogInput;
 export interface ActivityLogInput {
   entityType: string;
   entityId: string;
-  operation: ActivityOperation;
+  operation: string;
   activity: string;
   category?: string;
   meta?: Record<string, unknown>;

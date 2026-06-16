@@ -23,6 +23,7 @@ function normalizeDurationMs(value) {
     return Math.max(0, Math.round(value));
 }
 function baseCommon(ctx, tsMs, id) {
+    const requestId = ctx.requestId?.trim();
     return {
         id,
         timestamp: tsMs,
@@ -30,7 +31,7 @@ function baseCommon(ctx, tsMs, id) {
         actor_id: ctx.actorId,
         actor_type: ctx.actorType,
         tenant_id: ctx.tenantId,
-        request_id: ctx.requestId ?? "",
+        ...(requestId ? { request_id: requestId } : {}),
         source: ctx.source ?? "unknown",
     };
 }

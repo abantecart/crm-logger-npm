@@ -4,7 +4,6 @@ import type {
   AuditContext,
   ChangeLogInput,
 } from "../contracts/types";
-import { ACTIVITY_OPERATION } from "../contracts/types";
 import type {
   AccessLogInput as GrpcAccessLogInput,
   ActivityLogInput as GrpcActivityLogInput,
@@ -148,7 +147,7 @@ function fromGrpcActivityInput(input: GrpcActivityLogInput | undefined): Activit
   return {
     entityType: input?.entityType ?? "",
     entityId: input?.entityId ?? "",
-    operation: (input?.operation || ACTIVITY_OPERATION.VIEW) as ActivityLogInput["operation"],
+    operation: input?.operation ?? "",
     activity: input?.activity ?? "",
     category: input?.category || undefined,
     meta: input?.meta,

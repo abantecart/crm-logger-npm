@@ -68,6 +68,21 @@ const accessInput = { eventType: "api.request", outcome: "allowed" };
     });
     strict_1.default.equal(calls[0].url, "https://audit.example.test/v1/audit/activity");
 });
+(0, node_test_1.default)("ui-client accepts arbitrary activity operations", async () => {
+    const { calls, fetchImpl } = makeFetchRecorder();
+    const client = (0, index_1.createAuditHttpClient)({
+        baseUrl: "https://audit.example.test",
+        fetchImpl,
+    });
+    await client.logActivity(ctx, {
+        entityType: "call_sessions",
+        entityId: "session-1",
+        operation: "transfer.warm_complete",
+        activity: "Warm transfer completed to Alice",
+    });
+    const body = JSON.parse(String(calls[0].init.body));
+    strict_1.default.equal(body.input.operation, "transfer.warm_complete");
+});
 (0, node_test_1.default)("ui-client can read access/change/activity lists", async () => {
     const { calls, fetchImpl } = makeFetchRecorder();
     const client = (0, index_1.createAuditHttpClient)({

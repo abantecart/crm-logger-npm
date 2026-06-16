@@ -125,6 +125,23 @@ test("grpc mapper: activity mapping preserves payload", () => {
   assert.deepEqual(mappedBack.input, input);
 });
 
+test("grpc mapper: activity mapping preserves arbitrary string operations", () => {
+  const ctx: AuditContext = { actorId: "u1", actorType: "user", tenantId: "t1" };
+  const input: ActivityLogInput = {
+    entityType: "call_sessions",
+    entityId: "session-1",
+    operation: "incoming.received",
+    activity: "Status: queued",
+    category: undefined,
+    meta: { routeReason: "inbound" },
+  };
+
+  const grpcReq = toGrpcLogActivityRequest(ctx, input);
+  const mappedBack = fromGrpcLogActivityRequest(grpcReq);
+
+  assert.deepEqual(mappedBack.input, input);
+});
+
 test("grpc mapper: health response is converted to contract shape", () => {
   const out = fromGrpcHealthResponse({
     lastSuccessAt: "100",

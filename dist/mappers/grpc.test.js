@@ -65,6 +65,20 @@ void _typeLocksOk;
     const mappedBack = (0, grpc_1.fromGrpcLogActivityRequest)(grpcReq);
     strict_1.default.deepEqual(mappedBack.input, input);
 });
+(0, node_test_1.default)("grpc mapper: activity mapping preserves arbitrary string operations", () => {
+    const ctx = { actorId: "u1", actorType: "user", tenantId: "t1" };
+    const input = {
+        entityType: "call_sessions",
+        entityId: "session-1",
+        operation: "incoming.received",
+        activity: "Status: queued",
+        category: undefined,
+        meta: { routeReason: "inbound" },
+    };
+    const grpcReq = (0, grpc_1.toGrpcLogActivityRequest)(ctx, input);
+    const mappedBack = (0, grpc_1.fromGrpcLogActivityRequest)(grpcReq);
+    strict_1.default.deepEqual(mappedBack.input, input);
+});
 (0, node_test_1.default)("grpc mapper: health response is converted to contract shape", () => {
     const out = (0, grpc_1.fromGrpcHealthResponse)({
         lastSuccessAt: "100",

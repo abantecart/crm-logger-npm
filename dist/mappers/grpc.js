@@ -12,7 +12,6 @@ exports.fromGrpcLogChangeRequest = fromGrpcLogChangeRequest;
 exports.fromGrpcLogActivityRequest = fromGrpcLogActivityRequest;
 exports.fromGrpcDriverHealth = fromGrpcDriverHealth;
 exports.fromGrpcHealthResponse = fromGrpcHealthResponse;
-const types_1 = require("../contracts/types");
 function toGrpcAuditContext(ctx) {
     return {
         actorId: ctx.actorId,
@@ -132,7 +131,7 @@ function fromGrpcActivityInput(input) {
     return {
         entityType: input?.entityType ?? "",
         entityId: input?.entityId ?? "",
-        operation: (input?.operation || types_1.ACTIVITY_OPERATION.VIEW),
+        operation: input?.operation ?? "",
         activity: input?.activity ?? "",
         category: input?.category || undefined,
         meta: input?.meta,

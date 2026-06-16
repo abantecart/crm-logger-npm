@@ -77,6 +77,24 @@ test("ui-client falls back to /v1 for empty apiBasePath", async () => {
   assert.equal(calls[0].url, "https://audit.example.test/v1/audit/activity");
 });
 
+test("ui-client accepts arbitrary activity operations", async () => {
+  const { calls, fetchImpl } = makeFetchRecorder();
+  const client = createAuditHttpClient({
+    baseUrl: "https://audit.example.test",
+    fetchImpl,
+  });
+
+  await client.logActivity(ctx, {
+    entityType: "call_sessions",
+    entityId: "session-1",
+    operation: "transfer.warm_complete",
+    activity: "Warm transfer completed to Alice",
+  });
+
+  const body = JSON.parse(String(calls[0].init.body));
+  assert.equal(body.input.operation, "transfer.warm_complete");
+});
+
 test("ui-client can read access/change/activity lists", async () => {
   const { calls, fetchImpl } = makeFetchRecorder();
   const client = createAuditHttpClient({
